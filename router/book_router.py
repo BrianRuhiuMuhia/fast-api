@@ -1,6 +1,5 @@
 from fastapi import APIRouter,status
-from models.models import Book
-from models.models import BookModel
+from models.book_models import Book,BookModel
 from db.db import Session
 bookRouter=APIRouter()
 @bookRouter.get("/books")
