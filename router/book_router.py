@@ -1,15 +1,16 @@
-from fastapi import APIRouter,status
+from fastapi import APIRouter,status,Request,Response
 from models.book_models import Book,BookModel
 from db.db import Session
+from .auth_router import registered_user_session
 bookRouter=APIRouter()
 @bookRouter.get("/books")
-async  def get_books():
+async  def get_books(request:Request,response:Response):
     session=Session()
     books = session.query(Book).all()
     return {"books":books}
     
 @bookRouter.get("/books/{id}")
-async def get_single_book(id):
+async def get_single_book(id,request:Request,response:Response):
     session=Session()
     book = session.query(Book).filter(Book.id == id).first()
     if book!=None:
@@ -17,14 +18,14 @@ async def get_single_book(id):
     else:
         return {"message":"book not found"}
 @bookRouter.post("/books")
-async def add_book(book:BookModel):
+async def add_book(book:BookModel,request:Request,response:Response):
     session = Session()
     db_book = Book(**book.dict())  # Convert Pydantic model to SQLAlchemy model
     session.add(db_book)
     session.commit()
     return {"message":"book added"}
 @bookRouter.delete("/books/{id}")
-async def delete_book(id):
+async def delete_book(id,request:Request,response:Response):
     session=Session()
     book = session.query(Book).filter(Book.id == id).first()
     if book:
@@ -34,7 +35,7 @@ async def delete_book(id):
     else:
         return {"message": "Book not found"}
 @bookRouter.patch("/books/{id}")
-async def update_book(id,book:BookModel):
+async def update_book(id,book:BookModel,request:Request,response:Response):
     session=Session()
     book_update = session.query(Book).filter(Book.id == id).first()
     if book_update:
