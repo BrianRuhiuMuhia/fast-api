@@ -6,41 +6,61 @@ bookRouter=APIRouter()
 @bookRouter.get("/books")
 async  def get_books(request:Request,response:Response):
     session=Session()
-    books = session.query(Book).all()
-    return {"books":books}
+    session_id = request.cookies.get("session_id")
+    if session_id in registered_user_session:
+          books = session.query(Book).all()
+          return {"books":books}
+    else:
+        return {"message":"log in"}
     
 @bookRouter.get("/books/{id}")
 async def get_single_book(id,request:Request,response:Response):
     session=Session()
-    book = session.query(Book).filter(Book.id == id).first()
-    if book!=None:
-        return [book]
+    session_id = request.cookies.get("session_id")
+    if session_id in registered_user_session:
+          book = session.query(Book).filter(Book.id == id).first()
+          if book!=None:
+             return [book]
+          else:
+             return {"message":"book not found"}
     else:
-        return {"message":"book not found"}
+        return {"message":"log in"}
 @bookRouter.post("/books")
 async def add_book(book:BookModel,request:Request,response:Response):
     session = Session()
-    db_book = Book(**book.dict())  # Convert Pydantic model to SQLAlchemy model
-    session.add(db_book)
-    session.commit()
-    return {"message":"book added"}
+    session_id = request.cookies.get("session_id")
+    if session_id in registered_user_session:
+        db_book = Book(**book.dict())  
+        session.add(db_book)
+        session.commit()
+        return {"message":"book added"}
+    else:
+        return {"message":"log in"}
 @bookRouter.delete("/books/{id}")
 async def delete_book(id,request:Request,response:Response):
     session=Session()
-    book = session.query(Book).filter(Book.id == id).first()
-    if book:
-        session.delete(book)
-        session.commit()
-        return {"message": "Book deleted"}
+    session_id = request.cookies.get("session_id")
+    if session_id in registered_user_session:
+         book = session.query(Book).filter(Book.id == id).first()
+         if book:
+            session.delete(book)
+            session.commit()
+            return {"message": "Book deleted"}
+         else:
+            return {"message": "Book not found"}
     else:
-        return {"message": "Book not found"}
+        return {"message":"log in"}
 @bookRouter.patch("/books/{id}")
 async def update_book(id,book:BookModel,request:Request,response:Response):
     session=Session()
-    book_update = session.query(Book).filter(Book.id == id).first()
-    if book_update:
-        book_update=book
-        session.commit()
-        return {"message":f"book with id {id} updated"}
+    session_id = request.cookies.get("session_id")
+    if session_id in registered_user_session:
+        book_update = session.query(Book).filter(Book.id == id).first()
+        if book_update:
+            book_update=book
+            session.commit()
+            return {"message":f"book with id {id} updated"}
+        else:
+            return {"message":"book not found"}
     else:
-        return {"message":"book not found"}
+        return {"message":"log in"}
